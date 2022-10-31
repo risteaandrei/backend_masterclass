@@ -1,0 +1,65 @@
+1. Design DB schema and generate SQL code with dbdiagram.io
+- dbdiagram.io
+- pk, not null, default, note, ref, Indexes
+- export to postgresql
+- simple_bank.sql
+
+2. Install & use Docker + Postgres + TablePlus to create DB schema
+- docker pull postgres:12-alpine
+- docker run --name postgres12 -p 5431:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
+	- 5431 because 5432 is already used by local install of postgres
+
+3. How to write & run database migration in Golang
+- scoop install migrate
+- mkdir -p db/migration
+- migrate create -ext sql -dir db/migration -seq init_schema
+	- ext: extension
+	- dir: directory
+	- seq: use -seq option to generate sequential up/down migrations with N digits
+	- generates up/down migration files
+- 000001_init_schema.up.sql
+	- copy from simple_bank.sql
+- 000001_init_schema.down.sql
+	- drop tables entries, transfers, accounts (accounts last because of fk constraints)
+- docker exec -it postgres12 ...
+	- createdb --username=root --owner=root simple_bank -> create DB
+	- psql -U root simple_bank -> access DB
+- Makefile: createdb, dropdb, postgres (run pg container), migrateup, migratedown
+- TablePlus: select simple_bank db
+- migrate -path db/migration -database "postgresql://root:secret@localhost:5431/simple_bank?sslmode=disable" -verbose up
+
+4. Generate CRUD golang code from SQL
+- install latest version of go in wsl: https://go.dev/doc/install (linux version)
+- clone sqlc https://github.com/kyleconroy/sqlc/
+- cd cmd/sqlc && go build => sqlc binary
+- https://github.com/kyleconroy/sqlc/tree/v1.4.0#settings
+	- copy settings
+	- adjust folders
+- query/account.sql: add methods for account operations
+	- CreateAccount, GetAccount, ListAccounts, UpdateAccount, DeleteAccount
+- sqlc generate
+	=> sqlc generated files
+		- models.go: struct definitions from DB definition
+		- db.go: DBTX interface; can pass sql.db (single query) or sql.tx (multi query transaction)
+		- account.sql.go: CreateAccount method; name comes from account.sql comment
+	- to fix errors shown by VS code: go mod init github.com/techschool/simplebank
+- sqlc tags:
+	:one - returns one element
+	:many - returns slice of elements
+	:exec - doesn't return elements
+
+5. Write unit tests for database CRUD with random data in golang
+- account_test.go: TestCreateAccount
+	- tests: (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
+	- requires DB connection, done in main_test.go
+- main_test.go / TestMain
+	- main entry point for unit tests inside a golang specific package
+	- receives *testing.M (not *testing.T)
+	- creates connection
+- database/sql package provides only basic functionality, needs to work in conjunction with DB driver
+	- go get github.com/lib/pq
+	- import: _ "github.com/lib/pq"
+- go get github.com/stretchr/testify
+- util/random.go: create methods for random owner/money/currency
+- go test -v -cover ./... -> to run all tests recursively
+- create tests for account operations
