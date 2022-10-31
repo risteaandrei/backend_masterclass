@@ -1,3 +1,5 @@
+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
+
 1. Design DB schema and generate SQL code with dbdiagram.io
 - dbdiagram.io
 - pk, not null, default, note, ref, Indexes
@@ -63,3 +65,11 @@
 - util/random.go: create methods for random owner/money/currency
 - go test -v -cover ./... -> to run all tests recursively
 - create tests for account operations
+
+6. A clean way to implement database transaction in Golang
+- transactions, ACID
+- BEGIN...COMMIT; BEGIN...ROLLBACK
+- store.go
+	- Store struct: to run db operations individually and in transactions
+	- extends Queries functionality
+- make db from main_test.go global, to use it in tests
