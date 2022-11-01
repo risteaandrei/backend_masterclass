@@ -95,3 +95,8 @@ github_pat_11ABHWIGI0JOzEJWf3otIZ_gimFW9J9YO6jQXoxqXUEcIbgMgaTtaYZwgrpjE87tZp74H
 - https://wiki.postgresql.org/wiki/Lock_Monitoring
 - to fix deadlock, use: FOR NO KEY UPDATE
 - also can add in UPDATE operation without prior SELECT
+
+8. How to avoid deadlock in DB transaction? Queries order matters
+- do account1->account2 and account2->account1 transactions to obtain a deadlock
+- to fix, always respect order of transactions (e.g. operate on lower id first)
+- return without any parameters feature
