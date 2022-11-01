@@ -73,3 +73,25 @@ github_pat_11ABHWIGI0JOzEJWf3otIZ_gimFW9J9YO6jQXoxqXUEcIbgMgaTtaYZwgrpjE87tZp74H
 	- Store struct: to run db operations individually and in transactions
 	- extends Queries functionality
 - make db from main_test.go global, to use it in tests
+
+7. DB transaction lock & how to handle deadlock in golang
+- test without lock
+	- docker exec -it postgres12 psql -U root simple_bank
+	- BEGIN;
+	- SELECT * FROM accounts WHERE id = 1;
+	- do the same in other terminal
+	- not locked
+	- ROLLBACK
+- to fix use
+	- SELECT * FROM accounts WHERE id = 1 FOR UPDATE;
+- now we have deadlock
+- to add info to context
+	- var txKey = struct{}{}
+		- because context key should not be string (or any built in type)
+		- variable of type empty struct
+		- second bracket means we create the object
+	- ctx := context.WithValue(context.Background(), txKey, txName)
+	- txName := ctx.Value(txKey)
+- https://wiki.postgresql.org/wiki/Lock_Monitoring
+- to fix deadlock, use: FOR NO KEY UPDATE
+- also can add in UPDATE operation without prior SELECT
