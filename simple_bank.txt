@@ -121,4 +121,17 @@
 - postgres throws error for concurrent update
 - implement retry mechanism (for errors, timeouts, deadlocks)
 
-
+10. Setup github actions for golang + postgres to run automated tests
+- github actions: similar to jenkins, circle ci etc
+- workflow
+	- made up of several jobs
+	- triggered by: event, schedule, manual
+- runner
+	- server running the job
+	- for single job, can use github hosted
+	- reports progress, logs, result
+- job: steps to execute on same runner
+- step
+	- individual task, run serially within a job
+	- contains actions
+- action: standalone command
